@@ -5,16 +5,26 @@ const CARATS_PER_CHARACTER_BANNER = 30000;
 const CARATS_PER_CARD_BANNER = 60000;
 
 export function getAverageWeeklyGain(entries: WeeklyEntry[]): number {
-  const entriesWithGain = entries.filter(e => e.caratGain > 0);
-  if (entriesWithGain.length === 0) return 0;
-  const totalGain = entriesWithGain.reduce((sum, e) => sum + e.caratNet, 0);
-  return totalGain / entriesWithGain.length;
+  const filled = entries.filter(e => e.totalCarats > 0);
+  if (filled.length === 0) return 0;
+  const totalGain = filled.reduce((sum, e) => sum + e.caratGain, 0);
+  return totalGain / filled.length;
 }
 
 export function getLatestTotal(entries: WeeklyEntry[]): number {
   const filled = entries.filter(e => e.totalCarats > 0);
   if (filled.length === 0) return 0;
   return filled[filled.length - 1].totalCarats;
+}
+
+export function getLatestTickets(entries: WeeklyEntry[]): { characterTickets: number; supportTickets: number } {
+  const filled = entries.filter(e => e.totalCarats > 0);
+  if (filled.length === 0) return { characterTickets: 0, supportTickets: 0 };
+  const last = filled[filled.length - 1];
+  return {
+    characterTickets: last.characterTickets ?? 0,
+    supportTickets: last.supportTickets ?? 0,
+  };
 }
 
 export function getLatestDate(entries: WeeklyEntry[]): string | null {

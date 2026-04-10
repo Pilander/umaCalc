@@ -34,12 +34,16 @@ function EntryModalForm({
     date: string;
     caratSpent: string;
     caratGain: string;
+    characterTickets: string;
+    supportTickets: string;
   };
   onSubmit: (values: {
     date: string;
     freeCarats: number;
     caratSpent: number;
     caratGain: number;
+    characterTickets: number;
+    supportTickets: number;
   }) => void;
   onClose: () => void;
 }) {
@@ -61,6 +65,9 @@ function EntryModalForm({
   const net = gain - spent;
   const computedFree = previousFreeCarats + net;
 
+  const charTickets = num(form.characterTickets);
+  const supTickets = num(form.supportTickets);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -68,6 +75,8 @@ function EntryModalForm({
       freeCarats: computedFree,
       caratSpent: spent,
       caratGain: gain,
+      characterTickets: charTickets,
+      supportTickets: supTickets,
     });
   };
 
@@ -165,6 +174,41 @@ function EntryModalForm({
               <span className="text-sm text-text-muted">{formatNumber(paidCaratsTotal)}</span>
             </div>
           </div>
+          {/* Ticket inputs */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-sky-400 mb-1.5">
+                Char Tickets 🎫
+              </label>
+              <input
+                type="number"
+                value={form.characterTickets}
+                onChange={(e) =>
+                  setForm({ ...form, characterTickets: e.target.value })
+                }
+                onKeyDown={blockNonNum}
+                placeholder="0"
+                min="0"
+                className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-400/50 border border-surface-lighter focus:border-sky-400 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-amber-400 mb-1.5">
+                Support Tickets 🎫
+              </label>
+              <input
+                type="number"
+                value={form.supportTickets}
+                onChange={(e) =>
+                  setForm({ ...form, supportTickets: e.target.value })
+                }
+                onKeyDown={blockNonNum}
+                placeholder="0"
+                min="0"
+                className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400/50 border border-surface-lighter focus:border-amber-400 transition-colors"
+              />
+            </div>
+          </div>
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
@@ -213,6 +257,8 @@ function AddWeekModal({
         date: defaultDate,
         caratSpent: "0",
         caratGain: "0",
+        characterTickets: "0",
+        supportTickets: "0",
       }}
       onSubmit={(v) => {
         const paid = Number(paidCaratsTotal) || 0;
@@ -226,11 +272,8 @@ function AddWeekModal({
           caratSpent: v.caratSpent,
           caratGain: v.caratGain,
           caratNet: v.caratGain - v.caratSpent,
-          umaTickets: null,
-          umaPulls: 0,
-          umaPullsSpent: 0,
-          umaPullGain: 0,
-          umaPullNet: 0,
+          characterTickets: v.characterTickets,
+          supportTickets: v.supportTickets,
           lCarats: 0,
         });
         onClose();
@@ -267,6 +310,8 @@ function EditWeekModal({
         date: entry.date,
         caratSpent: String(entry.caratSpent),
         caratGain: String(entry.caratGain),
+        characterTickets: String(entry.characterTickets ?? 0),
+        supportTickets: String(entry.supportTickets ?? 0),
       }}
       onSubmit={(v) => {
         const paid = Number(paidCaratsTotal) || 0;
@@ -280,6 +325,8 @@ function EditWeekModal({
           caratSpent: v.caratSpent,
           caratGain: v.caratGain,
           caratNet: v.caratGain - v.caratSpent,
+          characterTickets: v.characterTickets,
+          supportTickets: v.supportTickets,
         });
         onClose();
       }}
@@ -415,6 +462,8 @@ export function WeeklyLog({
     const gain = Number(entry.caratGain) || 0;
     const spent = Number(entry.caratSpent) || 0;
     const net = gain - spent;
+    const charTix = Number(entry.characterTickets) || 0;
+    const supTix = Number(entry.supportTickets) || 0;
 
     return (
       <tr
@@ -460,6 +509,14 @@ export function WeeklyLog({
         <td className="px-4 py-3 text-right text-text-muted">
           {formatNumber(safePaid)}
         </td>
+        {/* 7. Character Tickets */}
+        <td className="px-4 py-3 text-right text-sky-400">
+          {charTix > 0 ? formatNumber(charTix) : <span className="text-text-muted/30">0</span>}
+        </td>
+        {/* 8. Support Tickets */}
+        <td className="px-4 py-3 text-right text-amber-400">
+          {supTix > 0 ? formatNumber(supTix) : <span className="text-text-muted/30">0</span>}
+        </td>
         {/* Actions */}
         <td className="px-4 py-3 text-center">
           <div className="flex items-center justify-center gap-1">
@@ -482,7 +539,7 @@ export function WeeklyLog({
     );
   };
 
-  const colCount = 7;
+  const colCount = 9;
 
   return (
     <div className="space-y-4">
@@ -538,9 +595,17 @@ export function WeeklyLog({
         />
       )}
 
-      {/* Empty state: Initial Balance onboarding */}
+      {/* Empty state: prompt to add first entry */}
       {entries.length === 0 && (
-        <InitialBalanceCard paidCaratsTotal={safePaid} onAdd={onAdd} />
+        <div className="bg-surface rounded-xl border border-surface-lighter p-8 text-center space-y-3">
+          <p className="text-text-muted">No entries yet. Add your first weekly entry to start tracking!</p>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" /> Add First Week
+          </button>
+        </div>
       )}
 
       {/* Table */}
@@ -569,6 +634,12 @@ export function WeeklyLog({
                 </th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">
                   Paid <CaratIcon />
+                </th>
+                <th className="px-4 py-3 text-right text-text-muted font-medium">
+                  Char 🎫
+                </th>
+                <th className="px-4 py-3 text-right text-text-muted font-medium">
+                  Sup 🎫
                 </th>
                 <th className="px-4 py-3 text-center text-text-muted font-medium">
                   Actions
@@ -624,99 +695,6 @@ export function WeeklyLog({
           </table>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  InitialBalanceCard – shown when no entries exist                    */
-/* ------------------------------------------------------------------ */
-function InitialBalanceCard({
-  paidCaratsTotal,
-  onAdd,
-}: {
-  paidCaratsTotal: number;
-  onAdd: (entry: Omit<WeeklyEntry, "id">) => void;
-}) {
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [freeCarats, setFreeCarats] = useState("");
-
-  const blockNonNum = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ("eE+.,".includes(e.key)) e.preventDefault();
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const free = Number(freeCarats) || 0;
-    const paid = paidCaratsTotal;
-    const total = free + paid;
-    onAdd({
-      date,
-      freeCarats: free,
-      paidCarats: paid,
-      totalCarats: total,
-      cumulativePulls: Math.floor(total / 150),
-      caratSpent: 0,
-      caratGain: 0,
-      caratNet: 0,
-      umaTickets: null,
-      umaPulls: 0,
-      umaPullsSpent: 0,
-      umaPullGain: 0,
-      umaPullNet: 0,
-      lCarats: 0,
-    });
-  };
-
-  return (
-    <div className="bg-surface rounded-xl border border-primary/30 p-8 text-center space-y-6">
-      <div>
-        <CaratIcon className="w-12 h-12 mx-auto mb-3" />
-        <h3 className="text-xl font-bold">Welcome to Uma Pull Tracker</h3>
-        <p className="text-sm text-text-muted mt-1">
-          Enter your current carat balance to get started. This will be your
-          baseline — it won&apos;t count as a weekly gain.
-        </p>
-      </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-sm mx-auto space-y-4 text-left"
-      >
-        <div>
-          <label className="block text-xs font-medium text-text-muted mb-1.5">
-            Date
-          </label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 border border-surface-lighter focus:border-primary transition-colors"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-text-muted mb-1.5">
-            Current Free Carats <CaratIcon className="w-4 h-4" />
-          </label>
-          <input
-            type="number"
-            value={freeCarats}
-            onChange={(e) => setFreeCarats(e.target.value)}
-            onKeyDown={blockNonNum}
-            placeholder="e.g. 45000"
-            autoFocus
-            className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 border border-surface-lighter focus:border-primary transition-colors"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={!freeCarats || Number(freeCarats) <= 0}
-          className="w-full px-5 py-2.5 bg-primary rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Plus className="w-4 h-4" /> Set Starting Balance
-        </button>
-      </form>
     </div>
   );
 }
