@@ -595,9 +595,17 @@ export function WeeklyLog({
         />
       )}
 
-      {/* Empty state: Initial Balance onboarding */}
+      {/* Empty state: prompt to add first entry */}
       {entries.length === 0 && (
-        <InitialBalanceCard paidCaratsTotal={safePaid} onAdd={onAdd} />
+        <div className="bg-surface rounded-xl border border-surface-lighter p-8 text-center space-y-3">
+          <p className="text-text-muted">No entries yet. Add your first weekly entry to start tracking!</p>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" /> Add First Week
+          </button>
+        </div>
       )}
 
       {/* Table */}
