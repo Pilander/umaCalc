@@ -182,17 +182,15 @@ export function useTrackerState() {
     }));
   }, []);
 
-  const emptyState: TrackerState = {
-    weeklyEntries: [],
-    bannerEntries: [],
-    wishlist: [],
-    paidCaratPurchases: [],
-    paidCaratsConstant: 0,
-  };
-
   const resetToDefault = useCallback(async () => {
     await clearState();
-    setState(emptyState);
+    setState({
+      weeklyEntries: [],
+      bannerEntries: [],
+      wishlist: [],
+      paidCaratPurchases: [],
+      paidCaratsConstant: 0,
+    });
   }, []);
 
   return {
