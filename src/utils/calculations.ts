@@ -1,8 +1,8 @@
 import type { WeeklyEntry, BannerEntry, PredictionResult } from '../types';
 
 const CARATS_PER_PULL = 150;
-const PULLS_PER_BANNER = 200;
-const CARATS_PER_BANNER = PULLS_PER_BANNER * CARATS_PER_PULL; // 30,000
+const CARATS_PER_CHARACTER_BANNER = 30000;
+const CARATS_PER_CARD_BANNER = 60000;
 
 export function getAverageWeeklyGain(entries: WeeklyEntry[]): number {
   const entriesWithGain = entries.filter(e => e.caratGain > 0);
@@ -57,7 +57,7 @@ export function calculatePredictions(
     const weeks = weeksBetween(latestDate, banner.weekDate!);
     if (weeks <= 0) continue;
 
-    const bannerCost = banner.isSSR ? CARATS_PER_BANNER * 2 : CARATS_PER_BANNER;
+    const bannerCost = banner.type === 'card' ? CARATS_PER_CARD_BANNER : CARATS_PER_CHARACTER_BANNER;
 
     cumulativeBannerCost += bannerCost;
     cumulativeFreePulls += banner.freePulls * CARATS_PER_PULL;
@@ -71,7 +71,6 @@ export function calculatePredictions(
       bannerName: banner.name,
       predictedCarats: Math.round(predictedCarats),
       adjustedCarats: Math.round(adjustedCarats),
-      isSSR: banner.isSSR,
       freePulls: banner.freePulls,
       extraModifier: banner.extraModifier,
     });
@@ -90,7 +89,7 @@ export interface WeeklyPrediction {
 /**
  * Generate week-by-week predictions for the chart.
  * Uses wishlisted + dated banner entries with real cost data
- * (SSR status, free pulls, modifiers).
+ * (banner type, free pulls, modifiers).
  */
 export function generateWeeklyPredictions(
   weeklyEntries: WeeklyEntry[],
@@ -147,7 +146,7 @@ export function generateWeeklyPredictions(
       if (Math.abs(entryTime - currentTime) < 4 * 24 * 60 * 60 * 1000) {
         // Sum all banners on this date
         for (const b of banners) {
-          const cost = b.isSSR ? CARATS_PER_BANNER * 2 : CARATS_PER_BANNER;
+          const cost = b.type === 'card' ? CARATS_PER_CARD_BANNER : CARATS_PER_CHARACTER_BANNER;
           const freeValue = b.freePulls * CARATS_PER_PULL;
           const modValue = b.extraModifier * CARATS_PER_PULL;
           cumulativeCost += cost - freeValue - modValue;

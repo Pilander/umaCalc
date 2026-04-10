@@ -145,7 +145,8 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
               />
               <Line type="monotone" dataKey="actual" stroke="#a78bfa" strokeWidth={2} dot={false} connectNulls={false} name="Actual" />
               <Line type="monotone" dataKey="predicted" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" dot={false} connectNulls={false} name="Predicted" />
-              <ReferenceLine y={30000} stroke="#ef4444" strokeDasharray="3 3" label={{ value: '1 Banner', fill: '#ef4444', fontSize: 11 }} />
+              <ReferenceLine y={30000} stroke="#ef4444" strokeDasharray="3 3" label={{ value: 'Character', fill: '#ef4444', fontSize: 11 }} />
+              <ReferenceLine y={60000} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Support', fill: '#f59e0b', fontSize: 11 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -160,10 +161,11 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {upcomingBanners.slice(0, 12).map((banner) => {
               const realBanner = bannerLookup.get(`${banner.bannerName}|${banner.weekDate}`);
-              const bannerType = realBanner?.type ?? (banner.isSSR ? 'card' : 'character');
-              const affordable = banner.adjustedCarats >= 30000;
+              const bannerType = realBanner?.type ?? 'character';
+              const bannerCost = bannerType === 'card' ? 60000 : 30000;
+              const affordable = banner.adjustedCarats >= 0;
               const pullsAffordable = Math.max(0, Math.floor(banner.adjustedCarats / CARATS_PER_PULL));
-              const gap = affordable ? 0 : 30000 - banner.adjustedCarats;
+              const gap = affordable ? 0 : Math.abs(banner.adjustedCarats);
 
               return (
                 <div
