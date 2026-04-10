@@ -34,12 +34,16 @@ function EntryModalForm({
     date: string;
     caratSpent: string;
     caratGain: string;
+    characterTickets: string;
+    supportTickets: string;
   };
   onSubmit: (values: {
     date: string;
     freeCarats: number;
     caratSpent: number;
     caratGain: number;
+    characterTickets: number;
+    supportTickets: number;
   }) => void;
   onClose: () => void;
 }) {
@@ -61,6 +65,9 @@ function EntryModalForm({
   const net = gain - spent;
   const computedFree = previousFreeCarats + net;
 
+  const charTickets = num(form.characterTickets);
+  const supTickets = num(form.supportTickets);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -68,6 +75,8 @@ function EntryModalForm({
       freeCarats: computedFree,
       caratSpent: spent,
       caratGain: gain,
+      characterTickets: charTickets,
+      supportTickets: supTickets,
     });
   };
 
@@ -165,6 +174,41 @@ function EntryModalForm({
               <span className="text-sm text-text-muted">{formatNumber(paidCaratsTotal)}</span>
             </div>
           </div>
+          {/* Ticket inputs */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-sky-400 mb-1.5">
+                Char Tickets 🎫
+              </label>
+              <input
+                type="number"
+                value={form.characterTickets}
+                onChange={(e) =>
+                  setForm({ ...form, characterTickets: e.target.value })
+                }
+                onKeyDown={blockNonNum}
+                placeholder="0"
+                min="0"
+                className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-400/50 border border-surface-lighter focus:border-sky-400 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-amber-400 mb-1.5">
+                Support Tickets 🎫
+              </label>
+              <input
+                type="number"
+                value={form.supportTickets}
+                onChange={(e) =>
+                  setForm({ ...form, supportTickets: e.target.value })
+                }
+                onKeyDown={blockNonNum}
+                placeholder="0"
+                min="0"
+                className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400/50 border border-surface-lighter focus:border-amber-400 transition-colors"
+              />
+            </div>
+          </div>
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
@@ -213,6 +257,8 @@ function AddWeekModal({
         date: defaultDate,
         caratSpent: "0",
         caratGain: "0",
+        characterTickets: "0",
+        supportTickets: "0",
       }}
       onSubmit={(v) => {
         const paid = Number(paidCaratsTotal) || 0;
@@ -226,11 +272,8 @@ function AddWeekModal({
           caratSpent: v.caratSpent,
           caratGain: v.caratGain,
           caratNet: v.caratGain - v.caratSpent,
-          umaTickets: null,
-          umaPulls: 0,
-          umaPullsSpent: 0,
-          umaPullGain: 0,
-          umaPullNet: 0,
+          characterTickets: v.characterTickets,
+          supportTickets: v.supportTickets,
           lCarats: 0,
         });
         onClose();
@@ -267,6 +310,8 @@ function EditWeekModal({
         date: entry.date,
         caratSpent: String(entry.caratSpent),
         caratGain: String(entry.caratGain),
+        characterTickets: String(entry.characterTickets ?? 0),
+        supportTickets: String(entry.supportTickets ?? 0),
       }}
       onSubmit={(v) => {
         const paid = Number(paidCaratsTotal) || 0;
@@ -280,6 +325,8 @@ function EditWeekModal({
           caratSpent: v.caratSpent,
           caratGain: v.caratGain,
           caratNet: v.caratGain - v.caratSpent,
+          characterTickets: v.characterTickets,
+          supportTickets: v.supportTickets,
         });
         onClose();
       }}
@@ -415,6 +462,8 @@ export function WeeklyLog({
     const gain = Number(entry.caratGain) || 0;
     const spent = Number(entry.caratSpent) || 0;
     const net = gain - spent;
+    const charTix = Number(entry.characterTickets) || 0;
+    const supTix = Number(entry.supportTickets) || 0;
 
     return (
       <tr
@@ -460,6 +509,14 @@ export function WeeklyLog({
         <td className="px-4 py-3 text-right text-text-muted">
           {formatNumber(safePaid)}
         </td>
+        {/* 7. Character Tickets */}
+        <td className="px-4 py-3 text-right text-sky-400">
+          {charTix > 0 ? formatNumber(charTix) : <span className="text-text-muted/30">0</span>}
+        </td>
+        {/* 8. Support Tickets */}
+        <td className="px-4 py-3 text-right text-amber-400">
+          {supTix > 0 ? formatNumber(supTix) : <span className="text-text-muted/30">0</span>}
+        </td>
         {/* Actions */}
         <td className="px-4 py-3 text-center">
           <div className="flex items-center justify-center gap-1">
@@ -482,7 +539,7 @@ export function WeeklyLog({
     );
   };
 
-  const colCount = 7;
+  const colCount = 9;
 
   return (
     <div className="space-y-4">
@@ -569,6 +626,12 @@ export function WeeklyLog({
                 </th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">
                   Paid <CaratIcon />
+                </th>
+                <th className="px-4 py-3 text-right text-text-muted font-medium">
+                  Char 🎫
+                </th>
+                <th className="px-4 py-3 text-right text-text-muted font-medium">
+                  Sup 🎫
                 </th>
                 <th className="px-4 py-3 text-center text-text-muted font-medium">
                   Actions
@@ -659,11 +722,8 @@ function InitialBalanceCard({
       caratSpent: 0,
       caratGain: 0,
       caratNet: 0,
-      umaTickets: null,
-      umaPulls: 0,
-      umaPullsSpent: 0,
-      umaPullGain: 0,
-      umaPullNet: 0,
+      characterTickets: 0,
+      supportTickets: 0,
       lCarats: 0,
     });
   };

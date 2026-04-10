@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import type { WeeklyEntry, BannerEntry } from '../types';
-import { getAverageWeeklyGain, calculatePredictions, generateWeeklyPredictions, formatNumber, formatDateShort } from '../utils/calculations';
-import { TrendingUp, Target, Calendar, Clock } from 'lucide-react';
+import { getAverageWeeklyGain, getLatestTickets, calculatePredictions, generateWeeklyPredictions, formatNumber, formatDateShort } from '../utils/calculations';
+import { TrendingUp, Target, Calendar, Clock, Ticket } from 'lucide-react';
 import { CaratIcon } from './Icons';
 
 interface DashboardProps {
@@ -81,6 +81,7 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
 
   const latestPulls = weeklyEntries.filter(e => e.cumulativePulls > 0).at(-1)?.cumulativePulls ?? 0;
   const totalWeeks = weeklyEntries.filter(e => e.totalCarats > 0).length;
+  const latestTickets = useMemo(() => getLatestTickets(weeklyEntries), [weeklyEntries]);
 
   return (
     <div className="space-y-6">
@@ -107,6 +108,25 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
           value={formatNumber(latestPulls)}
           color="text-warning"
         />
+        {/* Ticket Reserve Card */}
+        {(latestTickets.characterTickets > 0 || latestTickets.supportTickets > 0) && (
+          <div className="bg-surface rounded-xl p-5 border border-surface-lighter">
+            <div className="flex items-center gap-3">
+              <div className="text-amber-400"><Ticket className="w-5 h-5" /></div>
+              <div>
+                <p className="text-sm text-text-muted">Ticket Reserve</p>
+                <div className="flex items-center gap-3 mt-0.5">
+                  {latestTickets.characterTickets > 0 && (
+                    <span className="text-lg font-bold text-sky-400">{latestTickets.characterTickets} <span className="text-xs font-normal text-text-muted">Char</span></span>
+                  )}
+                  {latestTickets.supportTickets > 0 && (
+                    <span className="text-lg font-bold text-amber-400">{latestTickets.supportTickets} <span className="text-xs font-normal text-text-muted">Sup</span></span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {nextWishlistBanner ? (
           <div className="bg-surface rounded-xl p-5 border border-surface-lighter">
             <div className="flex items-center gap-3">

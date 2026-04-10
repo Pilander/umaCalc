@@ -8,11 +8,8 @@ export interface WeeklyEntry {
   caratSpent: number;
   caratGain: number;
   caratNet: number;
-  umaTickets: number | null;
-  umaPulls: number;
-  umaPullsSpent: number;
-  umaPullGain: number;
-  umaPullNet: number;
+  characterTickets: number;
+  supportTickets: number;
   lCarats: number;
 }
 

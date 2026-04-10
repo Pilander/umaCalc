@@ -23,11 +23,8 @@ function makeWeekly(overrides: Partial<WeeklyEntry> & { id: string; date: string
     caratSpent: 0,
     caratGain: 0,
     caratNet: 0,
-    umaTickets: null,
-    umaPulls: 0,
-    umaPullsSpent: 0,
-    umaPullGain: 0,
-    umaPullNet: 0,
+    characterTickets: 0,
+    supportTickets: 0,
     lCarats: 0,
     ...overrides,
   };
@@ -49,20 +46,28 @@ describe('getAverageWeeklyGain', () => {
     expect(getAverageWeeklyGain([])).toBe(0);
   });
 
-  it('returns 0 when no entries have positive caratGain', () => {
+  it('returns 0 when no entries have totalCarats > 0', () => {
     const entries = [
-      makeWeekly({ id: '1', date: '2025-01-01', caratGain: 0, caratNet: 0 }),
+      makeWeekly({ id: '1', date: '2025-01-01', totalCarats: 0, caratGain: 5000 }),
     ];
     expect(getAverageWeeklyGain(entries)).toBe(0);
   });
 
-  it('calculates average of caratNet for entries with positive caratGain', () => {
+  it('averages caratGain across all filled entries (including zero gain)', () => {
     const entries = [
-      makeWeekly({ id: '1', date: '2025-01-01', caratGain: 5000, caratNet: 3000 }),
-      makeWeekly({ id: '2', date: '2025-01-08', caratGain: 7000, caratNet: 5000 }),
-      makeWeekly({ id: '3', date: '2025-01-15', caratGain: 0, caratNet: -1000 }), // excluded
+      makeWeekly({ id: '1', date: '2025-01-01', totalCarats: 10000, caratGain: 5000 }),
+      makeWeekly({ id: '2', date: '2025-01-08', totalCarats: 17000, caratGain: 7000 }),
+      makeWeekly({ id: '3', date: '2025-01-15', totalCarats: 17000, caratGain: 0 }), // included
     ];
-    expect(getAverageWeeklyGain(entries)).toBe(4000); // (3000 + 5000) / 2
+    expect(getAverageWeeklyGain(entries)).toBe(4000); // (5000 + 7000 + 0) / 3
+  });
+
+  it('includes negative gain weeks in the average', () => {
+    const entries = [
+      makeWeekly({ id: '1', date: '2025-01-01', totalCarats: 10000, caratGain: 6000 }),
+      makeWeekly({ id: '2', date: '2025-01-08', totalCarats: 8000, caratGain: -2000 }),
+    ];
+    expect(getAverageWeeklyGain(entries)).toBe(2000); // (6000 + -2000) / 2
   });
 });
 

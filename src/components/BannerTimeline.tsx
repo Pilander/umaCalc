@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import type { BannerEntry, WeeklyEntry } from '../types';
-import { calculatePredictions, formatNumber, formatDateShort } from '../utils/calculations';
+import { calculatePredictions, getLatestTickets, formatNumber, formatDateShort } from '../utils/calculations';
 import { Plus, Trash2, Edit2, X, ArrowUpDown, Search, Heart, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import { CaratIcon } from './Icons';
 
@@ -272,6 +272,8 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
     [weeklyEntries, datedBanners]
   );
 
+  const latestTickets = useMemo(() => getLatestTickets(weeklyEntries), [weeklyEntries]);
+
   const sortedDatedBanners = useMemo(() =>
     [...datedBanners].sort((a, b) => new Date(a.weekDate!).getTime() - new Date(b.weekDate!).getTime()),
     [datedBanners]
@@ -383,13 +385,14 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
                 <th className="px-4 py-3 text-right text-text-muted font-medium">Predicted <CaratIcon /></th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">Budget <CaratIcon /></th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">After Pull <CaratIcon /></th>
+                <th className="px-4 py-3 text-right text-text-muted font-medium">Tickets 🎫</th>
                 <th className="px-4 py-3 text-center text-text-muted font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayBanners.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-4 py-8 text-center text-text-muted">
+                    <td colSpan={12} className="px-4 py-8 text-center text-text-muted">
                     No dated banners yet. Click <strong>Add Banner</strong> to get started.
                   </td>
                 </tr>
@@ -462,6 +465,21 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
                         <span className={`font-medium ${pred.adjustedCarats >= 0 ? 'text-success' : 'text-danger'}`}>
                           {formatNumber(pred.adjustedCarats)}
                         </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {banner.type === 'card' ? (
+                        latestTickets.supportTickets > 0 ? (
+                          <span className="text-amber-400">{latestTickets.supportTickets}</span>
+                        ) : (
+                          <span className="text-text-muted/30">0</span>
+                        )
+                      ) : (
+                        latestTickets.characterTickets > 0 ? (
+                          <span className="text-sky-400">{latestTickets.characterTickets}</span>
+                        ) : (
+                          <span className="text-text-muted/30">0</span>
+                        )
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">

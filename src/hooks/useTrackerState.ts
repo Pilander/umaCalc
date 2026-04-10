@@ -20,6 +20,18 @@ function migrateState(state: TrackerState): TrackerState {
     isWishlist: b.isWishlist ?? true, // old banners default to wishlisted
   }));
 
+  // Migrate weekly entries: add ticket fields, remove old uma* fields
+  migrated.weeklyEntries = migrated.weeklyEntries.map(e => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw = e as any;
+    const { umaTickets, umaPulls, umaPullsSpent, umaPullGain, umaPullNet, ...rest } = raw;
+    return {
+      ...rest,
+      characterTickets: rest.characterTickets ?? 0,
+      supportTickets: rest.supportTickets ?? 0,
+    };
+  });
+
   // Migrate old wishlist entries into banner entries
   if (migrated.wishlist && migrated.wishlist.length > 0) {
     const existingNames = new Set(migrated.bannerEntries.map(b => b.name.toLowerCase()));
