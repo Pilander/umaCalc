@@ -50,6 +50,36 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
     return { name: next.name, days: diffDays, date: next.weekDate! };
   }, [bannerEntries]);
 
+  // Build banner info keyed by formatted date for chart overlay
+  const bannerMarkers = useMemo(() => {
+    const markers: { date: string; fullDate: string; bannerName: string; type: string; cost: number; budget: number; afterPull: number }[] = [];
+    for (const pred of predictions) {
+      if (!pred.bannerName) continue;
+      const realBanner = bannerLookup.get(`${pred.bannerName}|${pred.weekDate}`);
+      markers.push({
+        date: formatDateShort(pred.weekDate),
+        fullDate: pred.weekDate,
+        bannerName: pred.bannerName,
+        type: realBanner?.type ?? 'character',
+        cost: pred.bannerCost,
+        budget: pred.budgetCarats,
+        afterPull: pred.adjustedCarats,
+      });
+    }
+    return markers;
+  }, [predictions, bannerLookup]);
+
+  // Build a lookup from formatted date → banner markers for the tooltip
+  const bannerByDate = useMemo(() => {
+    const map = new Map<string, typeof bannerMarkers>();
+    for (const m of bannerMarkers) {
+      const existing = map.get(m.date) || [];
+      existing.push(m);
+      map.set(m.date, existing);
+    }
+    return map;
+  }, [bannerMarkers]);
+
   const chartData = useMemo(() => {
     const actualEntries = weeklyEntries.filter(e => e.totalCarats > 0);
 
@@ -160,12 +190,56 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
               <XAxis dataKey="date" stroke="#9896a8" fontSize={12} />
               <YAxis stroke="#9896a8" fontSize={12} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#2a2640', border: '1px solid #363254', borderRadius: '8px', color: '#e2e0ea' }}
-                formatter={(value) => [formatNumber(value as number), '']}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload || payload.length === 0) return null;
+                  const banners = bannerByDate.get(label as string);
+                  const actualVal = payload.find(p => p.dataKey === 'actual')?.value as number | null;
+                  const predVal = payload.find(p => p.dataKey === 'predicted')?.value as number | null;
+                  return (
+                    <div style={{ backgroundColor: '#2a2640', border: '1px solid #363254', borderRadius: '8px', color: '#e2e0ea', padding: '10px 14px', fontSize: '13px', maxWidth: '260px' }}>
+                      <p style={{ fontWeight: 600, marginBottom: 4 }}>{label}</p>
+                      {actualVal != null && (
+                        <p style={{ color: '#a78bfa' }}>Actual: {formatNumber(actualVal)}</p>
+                      )}
+                      {predVal != null && (
+                        <p style={{ color: '#14b8a6' }}>Predicted: {formatNumber(predVal)}</p>
+                      )}
+                      {banners && banners.map((b, i) => (
+                        <div key={i} style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid #363254' }}>
+                          <p style={{ fontWeight: 600, color: b.type === 'card' ? '#fbbf24' : '#38bdf8' }}>
+                            {b.type === 'card' ? '🟡' : '🔵'} {b.bannerName}
+                          </p>
+                          <p style={{ color: '#9896a8', fontSize: '11px' }}>
+                            Cost: {formatNumber(b.cost)} · Budget: {formatNumber(b.budget)}
+                          </p>
+                          <p style={{ color: b.afterPull >= 0 ? '#34d399' : '#f87171', fontWeight: 500 }}>
+                            After Pull: {formatNumber(b.afterPull)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }}
               />
               <ReferenceLine y={0} stroke="#9896a8" strokeWidth={1} strokeDasharray="4 2" />
-              <Line type="monotone" dataKey="actual" stroke="#a78bfa" strokeWidth={2} dot={false} connectNulls={false} name="Actual" />
-              <Line type="monotone" dataKey="predicted" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" dot={false} connectNulls={false} name="Predicted" />
+              {/* Banner vertical marker lines */}
+              {bannerMarkers.map((m, i) => (
+                <ReferenceLine
+                  key={`banner-${i}`}
+                  x={m.date}
+                  stroke={m.type === 'card' ? '#fbbf24' : '#38bdf8'}
+                  strokeWidth={1.5}
+                  strokeDasharray="4 3"
+                  label={{
+                    value: '●',
+                    position: 'top',
+                    fill: m.type === 'card' ? '#fbbf24' : '#38bdf8',
+                    fontSize: 14,
+                  }}
+                />
+              ))}
+              <Line type="linear" dataKey="actual" stroke="#a78bfa" strokeWidth={2} dot={false} connectNulls={false} name="Actual" />
+              <Line type="linear" dataKey="predicted" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" dot={false} connectNulls={false} name="Predicted" />
             </LineChart>
           </ResponsiveContainer>
         </div>
