@@ -162,7 +162,6 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
             {upcomingBanners.slice(0, 12).map((banner) => {
               const realBanner = bannerLookup.get(`${banner.bannerName}|${banner.weekDate}`);
               const bannerType = realBanner?.type ?? 'character';
-              const bannerCost = bannerType === 'card' ? 60000 : 30000;
               const affordable = banner.adjustedCarats >= 0;
               const pullsAffordable = Math.max(0, Math.floor(banner.adjustedCarats / CARATS_PER_PULL));
               const gap = affordable ? 0 : Math.abs(banner.adjustedCarats);

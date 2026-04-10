@@ -212,9 +212,6 @@ function WishlistCard({
         <div className="space-y-1 min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <TypeTag type={banner.type} />
-            {banner.isSSR && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-danger/20 text-danger">SSR</span>
-            )}
           </div>
           <h4 className={`font-medium ${completed ? 'line-through' : ''}`}>{banner.name}</h4>
           <p className="text-sm text-text-muted">{subtitle}</p>

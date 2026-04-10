@@ -32,7 +32,6 @@ function migrateState(state: TrackerState): TrackerState {
         id: makeId(),
         weekDate: w.estimatedDate || null,
         name: w.name,
-        isSSR: false,
         freePulls: 0,
         extraModifier: 0,
         type: w.type === 'card' ? 'card' : 'character',
