@@ -54,7 +54,9 @@ export interface PredictionResult {
   weekDate: string;
   bannerName: string;
   predictedCarats: number;
+  budgetCarats: number;
   adjustedCarats: number;
+  bannerCost: number;
   freePulls: number;
   extraModifier: number;
 }

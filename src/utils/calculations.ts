@@ -57,20 +57,28 @@ export function calculatePredictions(
     const weeks = weeksBetween(latestDate, banner.weekDate!);
     if (weeks <= 0) continue;
 
-    const bannerCost = banner.type === 'card' ? CARATS_PER_CARD_BANNER : CARATS_PER_CHARACTER_BANNER;
-
-    cumulativeBannerCost += bannerCost;
-    cumulativeFreePulls += banner.freePulls * CARATS_PER_PULL;
-    cumulativeFreePulls += banner.extraModifier * CARATS_PER_PULL;
+    const rawBannerCost = banner.type === 'card' ? CARATS_PER_CARD_BANNER : CARATS_PER_CHARACTER_BANNER;
+    const freeValue = banner.freePulls * CARATS_PER_PULL;
+    const modValue = banner.extraModifier * CARATS_PER_PULL;
+    const netBannerCost = rawBannerCost - freeValue - modValue;
 
     const predictedCarats = latestTotal + (weeks * avgGain);
-    const adjustedCarats = predictedCarats - cumulativeBannerCost + cumulativeFreePulls;
+    // Budget = predicted minus all PRIOR wishlist costs (before this banner)
+    const budgetCarats = predictedCarats - cumulativeBannerCost + cumulativeFreePulls;
+    // After pull = budget minus THIS banner's cost
+    const adjustedCarats = budgetCarats - netBannerCost;
+
+    // Now accumulate for next iterations
+    cumulativeBannerCost += rawBannerCost;
+    cumulativeFreePulls += freeValue + modValue;
 
     results.push({
       weekDate: banner.weekDate!,
       bannerName: banner.name,
       predictedCarats: Math.round(predictedCarats),
+      budgetCarats: Math.round(budgetCarats),
       adjustedCarats: Math.round(adjustedCarats),
+      bannerCost: netBannerCost,
       freePulls: banner.freePulls,
       extraModifier: banner.extraModifier,
     });

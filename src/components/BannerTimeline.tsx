@@ -381,6 +381,7 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
                 <th className="px-4 py-3 text-right text-text-muted font-medium">Free Pulls</th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">Modifier</th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">Predicted <CaratIcon /></th>
+                <th className="px-4 py-3 text-right text-text-muted font-medium">Budget <CaratIcon /></th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">After Pull <CaratIcon /></th>
                 <th className="px-4 py-3 text-center text-text-muted font-medium">Actions</th>
               </tr>
@@ -388,7 +389,7 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
             <tbody>
               {displayBanners.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-text-muted">
+                  <td colSpan={11} className="px-4 py-8 text-center text-text-muted">
                     No dated banners yet. Click <strong>Add Banner</strong> to get started.
                   </td>
                 </tr>
@@ -447,6 +448,13 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
                     <td className="px-4 py-3 text-right">
                       {pred && (
                         <span className="text-text-muted">{formatNumber(pred.predictedCarats)}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {pred && (
+                        <span className={`font-medium ${pred.budgetCarats >= 0 ? 'text-accent' : 'text-danger'}`}>
+                          {formatNumber(pred.budgetCarats)}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">

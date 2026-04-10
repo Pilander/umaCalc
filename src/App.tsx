@@ -7,7 +7,7 @@ import { PaidCarats } from './components/PaidCarats';
 import { BannerTimeline } from './components/BannerTimeline';
 import { Wishlist } from './components/Wishlist';
 import { LayoutDashboard, CalendarDays, Flag, Star, RotateCcw } from 'lucide-react';
-import umaLogo from './assets/Uma_Musume_Pretty_Derby_JP_Logo.webp';
+const umaLogo = '/Uma_Musume_Pretty_Derby_JP_Logo.webp';
 
 const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -32,17 +32,19 @@ function App() {
               <p className="text-xs text-text-muted">Umamusume Gacha Resource Planner</p>
             </div>
           </div>
-          <button
-            onClick={() => {
-              if (confirm('Delete ALL data? This will clear everything and cannot be undone.')) {
-                tracker.resetToDefault();
-              }
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs text-text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset
-          </button>
+          {import.meta.env.DEV && (
+            <button
+              onClick={() => {
+                if (confirm('Delete ALL data? This will clear everything and cannot be undone.')) {
+                  tracker.resetToDefault();
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs text-text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
+            </button>
+          )}
         </div>
 
         {/* Tabs */}

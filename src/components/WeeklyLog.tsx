@@ -538,6 +538,11 @@ export function WeeklyLog({
         />
       )}
 
+      {/* Empty state: Initial Balance onboarding */}
+      {entries.length === 0 && (
+        <InitialBalanceCard paidCaratsTotal={safePaid} onAdd={onAdd} />
+      )}
+
       {/* Table */}
       <div
         ref={tableContainerRef}
@@ -550,16 +555,16 @@ export function WeeklyLog({
                 <th className="px-4 py-3 text-left text-text-muted font-medium">
                   Date
                 </th>
-                <th className="px-4 py-3 text-right text-success font-medium">
+                <th className="px-4 py-3 text-right text-text-muted font-medium">
                   Gain
                 </th>
-                <th className="px-4 py-3 text-right text-danger font-medium">
+                <th className="px-4 py-3 text-right text-text-muted font-medium">
                   Spent
                 </th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">
                   Net
                 </th>
-                <th className="px-4 py-3 text-right text-primary-light font-medium">
+                <th className="px-4 py-3 text-right text-text-muted font-medium">
                   Free <CaratIcon />
                 </th>
                 <th className="px-4 py-3 text-right text-text-muted font-medium">
@@ -619,6 +624,99 @@ export function WeeklyLog({
           </table>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  InitialBalanceCard – shown when no entries exist                    */
+/* ------------------------------------------------------------------ */
+function InitialBalanceCard({
+  paidCaratsTotal,
+  onAdd,
+}: {
+  paidCaratsTotal: number;
+  onAdd: (entry: Omit<WeeklyEntry, "id">) => void;
+}) {
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [freeCarats, setFreeCarats] = useState("");
+
+  const blockNonNum = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ("eE+.,".includes(e.key)) e.preventDefault();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const free = Number(freeCarats) || 0;
+    const paid = paidCaratsTotal;
+    const total = free + paid;
+    onAdd({
+      date,
+      freeCarats: free,
+      paidCarats: paid,
+      totalCarats: total,
+      cumulativePulls: Math.floor(total / 150),
+      caratSpent: 0,
+      caratGain: 0,
+      caratNet: 0,
+      umaTickets: null,
+      umaPulls: 0,
+      umaPullsSpent: 0,
+      umaPullGain: 0,
+      umaPullNet: 0,
+      lCarats: 0,
+    });
+  };
+
+  return (
+    <div className="bg-surface rounded-xl border border-primary/30 p-8 text-center space-y-6">
+      <div>
+        <CaratIcon className="w-12 h-12 mx-auto mb-3" />
+        <h3 className="text-xl font-bold">Welcome to Uma Pull Tracker</h3>
+        <p className="text-sm text-text-muted mt-1">
+          Enter your current carat balance to get started. This will be your
+          baseline — it won&apos;t count as a weekly gain.
+        </p>
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-sm mx-auto space-y-4 text-left"
+      >
+        <div>
+          <label className="block text-xs font-medium text-text-muted mb-1.5">
+            Date
+          </label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 border border-surface-lighter focus:border-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-text-muted mb-1.5">
+            Current Free Carats <CaratIcon className="w-4 h-4" />
+          </label>
+          <input
+            type="number"
+            value={freeCarats}
+            onChange={(e) => setFreeCarats(e.target.value)}
+            onKeyDown={blockNonNum}
+            placeholder="e.g. 45000"
+            autoFocus
+            className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 border border-surface-lighter focus:border-primary transition-colors"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!freeCarats || Number(freeCarats) <= 0}
+          className="w-full px-5 py-2.5 bg-primary rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Plus className="w-4 h-4" /> Set Starting Balance
+        </button>
+      </form>
     </div>
   );
 }
