@@ -68,6 +68,15 @@ function App() {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
+        {tracker.isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-light mx-auto mb-4"></div>
+              <p className="text-text-muted text-sm">Loading data...</p>
+            </div>
+          </div>
+        ) : (
+        <>
         {activeTab === 'dashboard' && (
           <Dashboard
             weeklyEntries={tracker.state.weeklyEntries}
@@ -107,6 +116,8 @@ function App() {
             onAdd={tracker.addBannerEntry}
             onDelete={tracker.deleteBannerEntry}
           />
+        )}
+        </>
         )}
       </main>
     </div>

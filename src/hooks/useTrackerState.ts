@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TrackerState, WeeklyEntry, BannerEntry, PaidCaratPurchase } from '../types';
 import { saveState, loadState, clearState } from '../utils/storage';
 import { defaultState } from '../data/seedData';
@@ -47,16 +47,55 @@ function migrateState(state: TrackerState): TrackerState {
   return migrated;
 }
 
-export function useTrackerState() {
-  const [state, setState] = useState<TrackerState>(() => {
-    const saved = loadState();
-    if (saved) return migrateState(saved);
-    return defaultState;
-  });
+const DEBOUNCE_MS = 500;
 
+export function useTrackerState() {
+  const [state, setState] = useState<TrackerState>(defaultState);
+  const [isLoading, setIsLoading] = useState(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialLoadRef = useRef(true);
+
+  // Load state from server on mount
   useEffect(() => {
-    saveState(state);
-  }, [state]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const saved = await loadState();
+        if (!cancelled) {
+          if (saved) {
+            setState(migrateState(saved));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load state:', err);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+          isInitialLoadRef.current = false;
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Debounced save to server whenever state changes (skip initial load)
+  useEffect(() => {
+    if (isInitialLoadRef.current || isLoading) return;
+
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+
+    saveTimerRef.current = setTimeout(() => {
+      saveState(state).catch(err => console.error('Failed to save state:', err));
+    }, DEBOUNCE_MS);
+
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [state, isLoading]);
 
   const updateWeeklyEntry = useCallback((id: string, updates: Partial<WeeklyEntry>) => {
     setState(prev => ({
@@ -151,13 +190,14 @@ export function useTrackerState() {
     paidCaratsConstant: 0,
   };
 
-  const resetToDefault = useCallback(() => {
-    clearState();
+  const resetToDefault = useCallback(async () => {
+    await clearState();
     setState(emptyState);
   }, []);
 
   return {
     state: { ...state, paidCaratPurchases: state.paidCaratPurchases || [] },
+    isLoading,
     updateWeeklyEntry,
     addWeeklyEntry,
     deleteWeeklyEntry,
