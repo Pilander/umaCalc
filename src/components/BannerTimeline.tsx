@@ -313,7 +313,6 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
       weekDate: data.startDate,
       endDate: data.startDate ? data.endDate : undefined,
       name: data.name,
-      isSSR: data.type === 'card',
       freePulls: data.freePulls,
       extraModifier: data.extraModifier,
       type: data.type,
@@ -328,7 +327,6 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
       weekDate: data.startDate,
       endDate: data.startDate ? data.endDate : undefined,
       name: data.name,
-      isSSR: data.type === 'card',
       freePulls: data.freePulls,
       extraModifier: data.extraModifier,
       type: data.type,
@@ -453,7 +451,7 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
                     </td>
                     <td className="px-4 py-3 text-right">
                       {pred && (
-                        <span className={`font-medium ${pred.adjustedCarats >= 30000 ? 'text-success' : 'text-danger'}`}>
+                        <span className={`font-medium ${pred.adjustedCarats >= 0 ? 'text-success' : 'text-danger'}`}>
                           {formatNumber(pred.adjustedCarats)}
                         </span>
                       )}

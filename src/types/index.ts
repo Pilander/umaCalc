@@ -21,7 +21,6 @@ export interface BannerEntry {
   weekDate: string | null; // ISO date string – null if date unknown
   endDate?: string; // ISO date string - banner end date (default: startDate + 9 days)
   name: string; // Banner name
-  isSSR: boolean; // SSR banners cost double (60k instead of 30k)
   freePulls: number; // Free pull modifier
   extraModifier: number; // Additional modifier (e.g., -100 for SiL/Gentil)
   type: 'character' | 'card' | 'both'; // Banner type
@@ -56,7 +55,6 @@ export interface PredictionResult {
   bannerName: string;
   predictedCarats: number;
   adjustedCarats: number;
-  isSSR: boolean;
   freePulls: number;
   extraModifier: number;
 }

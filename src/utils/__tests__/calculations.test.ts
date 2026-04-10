@@ -36,7 +36,6 @@ function makeWeekly(overrides: Partial<WeeklyEntry> & { id: string; date: string
 function makeBanner(overrides: Partial<BannerEntry> & { id: string; name: string }): BannerEntry {
   return {
     weekDate: null,
-    isSSR: false,
     freePulls: 0,
     extraModifier: 0,
     type: 'character',
@@ -167,18 +166,18 @@ describe('calculatePredictions', () => {
     expect(results[0].adjustedCarats).toBe(5000);
   });
 
-  it('SSR banners cost double', () => {
+  it('card banners cost 60k', () => {
     const weekly = [
       makeWeekly({ id: '1', date: '2025-01-01', totalCarats: 50000, caratGain: 5000, caratNet: 5000 }),
     ];
     const banners = [
-      makeBanner({ id: '1', name: 'SSR Banner', weekDate: '2025-02-05', isWishlist: true, isSSR: true }),
+      makeBanner({ id: '1', name: 'Support Banner', weekDate: '2025-02-05', isWishlist: true, type: 'card' }),
     ];
     const results = calculatePredictions(weekly, banners);
     expect(results).toHaveLength(1);
     // 5 weeks * 5000 = 25000, total = 75000
     expect(results[0].predictedCarats).toBe(75000);
-    // SSR costs 60000: 75000 - 60000 = 15000
+    // Card costs 60000: 75000 - 60000 = 15000
     expect(results[0].adjustedCarats).toBe(15000);
   });
 
