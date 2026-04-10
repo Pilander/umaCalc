@@ -162,6 +162,10 @@ describe('calculatePredictions', () => {
     expect(results[0].bannerName).toBe('Banner A');
     // 5 weeks * 5000 = 25000 gained, total = 35000
     expect(results[0].predictedCarats).toBe(35000);
+    // No prior banners, so budget = predicted = 35000
+    expect(results[0].budgetCarats).toBe(35000);
+    // Banner cost = 30000 (character)
+    expect(results[0].bannerCost).toBe(30000);
     // After pulling: 35000 - 30000 = 5000
     expect(results[0].adjustedCarats).toBe(5000);
   });
@@ -177,6 +181,8 @@ describe('calculatePredictions', () => {
     expect(results).toHaveLength(1);
     // 5 weeks * 5000 = 25000, total = 75000
     expect(results[0].predictedCarats).toBe(75000);
+    expect(results[0].budgetCarats).toBe(75000);
+    expect(results[0].bannerCost).toBe(60000);
     // Card costs 60000: 75000 - 60000 = 15000
     expect(results[0].adjustedCarats).toBe(15000);
   });
@@ -190,9 +196,37 @@ describe('calculatePredictions', () => {
     ];
     const results = calculatePredictions(weekly, banners);
     // predicted = 10000 + 5*5000 = 35000
-    // cost = 30000, free = 10*150 = 1500, mod = 5*150 = 750
-    // adjusted = 35000 - 30000 + 1500 + 750 = 7250
+    // net cost = 30000 - 1500 - 750 = 27750
+    expect(results[0].budgetCarats).toBe(35000);
+    expect(results[0].bannerCost).toBe(27750);
+    // adjusted = 35000 - 27750 = 7250
     expect(results[0].adjustedCarats).toBe(7250);
+  });
+
+  it('cumulative costs: budget shows prior costs deducted', () => {
+    const weekly = [
+      makeWeekly({ id: '1', date: '2025-01-01', totalCarats: 100000, caratGain: 5000, caratNet: 5000 }),
+    ];
+    const banners = [
+      makeBanner({ id: '1', name: 'Support', weekDate: '2025-02-05', isWishlist: true, type: 'card' }),
+      makeBanner({ id: '2', name: 'Character', weekDate: '2025-02-12', isWishlist: true, type: 'character' }),
+    ];
+    const results = calculatePredictions(weekly, banners);
+    expect(results).toHaveLength(2);
+
+    // Banner 1 (Support): 5 weeks, predicted = 100000 + 25000 = 125000
+    expect(results[0].predictedCarats).toBe(125000);
+    expect(results[0].budgetCarats).toBe(125000); // no prior costs
+    expect(results[0].bannerCost).toBe(60000);
+    expect(results[0].adjustedCarats).toBe(65000); // 125000 - 60000
+
+    // Banner 2 (Character): 6 weeks, predicted = 100000 + 30000 = 130000
+    expect(results[1].predictedCarats).toBe(130000);
+    // Budget = 130000 - 60000 (prior support cost) = 70000
+    expect(results[1].budgetCarats).toBe(70000);
+    expect(results[1].bannerCost).toBe(30000);
+    // After pull = 70000 - 30000 = 40000
+    expect(results[1].adjustedCarats).toBe(40000);
   });
 });
 

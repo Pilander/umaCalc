@@ -25,8 +25,8 @@ export function PaidCarats({ purchases, onAdd, onDelete }: PaidCaratsProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-primary-light">
-            {formatNumber(totalPaid)} <CaratIcon className="w-4 h-4" />
+          <span className="text-lg font-bold text-primary-light flex items-center gap-1">
+            {formatNumber(totalPaid)} <CaratIcon className="w-5 h-5" />
           </span>
           <button
             onClick={() => setShowAdd(true)}
@@ -82,8 +82,8 @@ function AddPurchaseModal({
   onClose: () => void;
 }) {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [amount, setAmount] = useState("442");
-  const [note, setNote] = useState("Monthly Pack");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
   const backdropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

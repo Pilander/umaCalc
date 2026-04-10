@@ -183,9 +183,9 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
                     </div>
                     <div className="text-right flex-shrink-0 ml-3 space-y-1">
                       <div>
-                        <p className="text-[10px] uppercase tracking-wide text-text-muted">Predicted</p>
-                        <p className="text-sm text-text-muted flex items-center justify-end gap-1">
-                          {formatNumber(banner.predictedCarats)}
+                        <p className="text-[10px] uppercase tracking-wide text-text-muted">Budget</p>
+                        <p className="text-sm text-accent flex items-center justify-end gap-1">
+                          {formatNumber(banner.budgetCarats)}
                           <CaratIcon className="w-3.5 h-3.5" />
                         </p>
                       </div>
