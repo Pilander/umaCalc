@@ -143,10 +143,9 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
                 contentStyle={{ backgroundColor: '#2a2640', border: '1px solid #363254', borderRadius: '8px', color: '#e2e0ea' }}
                 formatter={(value) => [formatNumber(value as number), '']}
               />
+              <ReferenceLine y={0} stroke="#9896a8" strokeWidth={1} strokeDasharray="4 2" />
               <Line type="monotone" dataKey="actual" stroke="#a78bfa" strokeWidth={2} dot={false} connectNulls={false} name="Actual" />
               <Line type="monotone" dataKey="predicted" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" dot={false} connectNulls={false} name="Predicted" />
-              <ReferenceLine y={30000} stroke="#ef4444" strokeDasharray="3 3" label={{ value: 'Character', fill: '#ef4444', fontSize: 11 }} />
-              <ReferenceLine y={60000} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Support', fill: '#f59e0b', fontSize: 11 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
