@@ -388,7 +388,7 @@ export function WeeklyLog({
 }: WeeklyLogProps) {
   const [editingEntry, setEditingEntry] = useState<WeeklyEntry | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showPast, setShowPast] = useState(false);
+  const [showPast, setShowPast] = useState(true);
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
