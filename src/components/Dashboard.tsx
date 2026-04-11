@@ -81,7 +81,9 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
   }, [bannerMarkers]);
 
   const chartData = useMemo(() => {
-    const actualEntries = weeklyEntries.filter(e => e.totalCarats > 0);
+    const actualEntries = weeklyEntries
+      .filter(e => e.totalCarats > 0)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     const actualData = actualEntries.map(e => ({
       date: formatDateShort(e.date),
