@@ -18,13 +18,13 @@ export function getLatestTotal(entries: WeeklyEntry[]): number {
 }
 
 export function getLatestTickets(entries: WeeklyEntry[]): { characterTickets: number; supportTickets: number } {
-  const filled = entries.filter(e => e.totalCarats > 0);
-  if (filled.length === 0) return { characterTickets: 0, supportTickets: 0 };
-  const last = filled[filled.length - 1];
-  return {
-    characterTickets: last.characterTickets ?? 0,
-    supportTickets: last.supportTickets ?? 0,
-  };
+  let characterTickets = 0;
+  let supportTickets = 0;
+  for (const e of entries) {
+    characterTickets += e.characterTickets ?? 0;
+    supportTickets += e.supportTickets ?? 0;
+  }
+  return { characterTickets, supportTickets };
 }
 
 export function getLatestDate(entries: WeeklyEntry[]): string | null {
