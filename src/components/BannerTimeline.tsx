@@ -274,7 +274,8 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
 
   const latestTickets = useMemo(() => getLatestTickets(weeklyEntries), [weeklyEntries]);
 
-  // Project tickets forward: subtract 1 ticket per wishlisted banner of matching type
+  // Project tickets forward: use tickets as fallback when carats insufficient
+  // Each ticket = 1 pull = 150 carats worth
   const ticketsByBannerId = useMemo(() => {
     const map = new Map<string, number>();
     let charRemaining = latestTickets.characterTickets;
@@ -286,24 +287,34 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
       .sort((a, b) => new Date(a.weekDate!).getTime() - new Date(b.weekDate!).getTime());
 
     for (const banner of wishlistedDated) {
-      if (banner.type === 'card') {
-        map.set(banner.id, supRemaining);
-        supRemaining = Math.max(0, supRemaining - 1);
+      const pred = predictions.find(p => p.weekDate === banner.weekDate && p.bannerName === banner.name);
+      const isSupport = banner.type === 'card';
+      const available = isSupport ? supRemaining : charRemaining;
+
+      if (pred && pred.budgetCarats < pred.bannerCost) {
+        // Shortfall in carats — use tickets to cover
+        const shortfall = pred.bannerCost - pred.budgetCarats;
+        const ticketsNeeded = Math.ceil(shortfall / 150);
+        const ticketsUsed = Math.min(ticketsNeeded, available);
+        const remaining = available - ticketsUsed;
+        map.set(banner.id, remaining);
+        if (isSupport) supRemaining = remaining;
+        else charRemaining = remaining;
       } else {
-        map.set(banner.id, charRemaining);
-        charRemaining = Math.max(0, charRemaining - 1);
+        // Enough carats — no tickets consumed
+        map.set(banner.id, available);
       }
     }
 
     // Non-wishlisted banners just show current totals based on type
     for (const banner of datedBanners) {
       if (!map.has(banner.id)) {
-        map.set(banner.id, banner.type === 'card' ? latestTickets.supportTickets : latestTickets.characterTickets);
+        map.set(banner.id, banner.type === 'card' ? supRemaining : charRemaining);
       }
     }
 
     return map;
-  }, [latestTickets, datedBanners]);
+  }, [latestTickets, datedBanners, predictions]);
 
   const sortedDatedBanners = useMemo(() =>
     [...datedBanners].sort((a, b) => new Date(a.weekDate!).getTime() - new Date(b.weekDate!).getTime()),
