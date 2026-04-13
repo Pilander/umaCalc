@@ -118,7 +118,7 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <div className="bg-surface rounded-xl p-5 border border-surface-lighter">
           <div className="flex items-center gap-3">
             <CaratIcon className="w-8 h-8" />
@@ -141,8 +141,7 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
           color="text-warning"
         />
         {/* Ticket Reserve Card */}
-        {(latestTickets.characterTickets > 0 || latestTickets.supportTickets > 0) && (
-          <div className="bg-surface rounded-xl p-5 border border-surface-lighter">
+        <div className="bg-surface rounded-xl p-5 border border-surface-lighter">
             <div className="flex items-center gap-3">
               <div className="text-amber-400"><Ticket className="w-5 h-5" /></div>
               <div>
@@ -158,7 +157,6 @@ export function Dashboard({ weeklyEntries, bannerEntries }: DashboardProps) {
               </div>
             </div>
           </div>
-        )}
         {nextWishlistBanner ? (
           <div className="bg-surface rounded-xl p-5 border border-surface-lighter">
             <div className="flex items-center gap-3">
