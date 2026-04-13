@@ -274,6 +274,37 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
 
   const latestTickets = useMemo(() => getLatestTickets(weeklyEntries), [weeklyEntries]);
 
+  // Project tickets forward: subtract 1 ticket per wishlisted banner of matching type
+  const ticketsByBannerId = useMemo(() => {
+    const map = new Map<string, number>();
+    let charRemaining = latestTickets.characterTickets;
+    let supRemaining = latestTickets.supportTickets;
+
+    // Process wishlisted dated banners in chronological order
+    const wishlistedDated = [...datedBanners]
+      .filter(b => b.isWishlist)
+      .sort((a, b) => new Date(a.weekDate!).getTime() - new Date(b.weekDate!).getTime());
+
+    for (const banner of wishlistedDated) {
+      if (banner.type === 'card') {
+        map.set(banner.id, supRemaining);
+        supRemaining = Math.max(0, supRemaining - 1);
+      } else {
+        map.set(banner.id, charRemaining);
+        charRemaining = Math.max(0, charRemaining - 1);
+      }
+    }
+
+    // Non-wishlisted banners just show current totals based on type
+    for (const banner of datedBanners) {
+      if (!map.has(banner.id)) {
+        map.set(banner.id, banner.type === 'card' ? latestTickets.supportTickets : latestTickets.characterTickets);
+      }
+    }
+
+    return map;
+  }, [latestTickets, datedBanners]);
+
   const sortedDatedBanners = useMemo(() =>
     [...datedBanners].sort((a, b) => new Date(a.weekDate!).getTime() - new Date(b.weekDate!).getTime()),
     [datedBanners]
@@ -468,19 +499,13 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {banner.type === 'card' ? (
-                        latestTickets.supportTickets > 0 ? (
-                          <span className="text-amber-400">{latestTickets.supportTickets}</span>
-                        ) : (
-                          <span className="text-text-muted/30">0</span>
-                        )
-                      ) : (
-                        latestTickets.characterTickets > 0 ? (
-                          <span className="text-sky-400">{latestTickets.characterTickets}</span>
-                        ) : (
-                          <span className="text-text-muted/30">0</span>
-                        )
-                      )}
+                      {(() => {
+                        const tickets = ticketsByBannerId.get(banner.id) ?? 0;
+                        const color = banner.type === 'card' ? 'text-amber-400' : 'text-sky-400';
+                        return tickets > 0
+                          ? <span className={color}>{tickets}</span>
+                          : <span className="text-text-muted/30">0</span>;
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">

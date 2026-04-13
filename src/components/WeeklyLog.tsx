@@ -188,7 +188,6 @@ function EntryModalForm({
                 }
                 onKeyDown={blockNonNum}
                 placeholder="0"
-                min="0"
                 className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-400/50 border border-surface-lighter focus:border-sky-400 transition-colors"
               />
             </div>
@@ -204,7 +203,6 @@ function EntryModalForm({
                 }
                 onKeyDown={blockNonNum}
                 placeholder="0"
-                min="0"
                 className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400/50 border border-surface-lighter focus:border-amber-400 transition-colors"
               />
             </div>
@@ -510,12 +508,12 @@ export function WeeklyLog({
           {formatNumber(safePaid)}
         </td>
         {/* 7. Character Tickets */}
-        <td className="px-4 py-3 text-right text-sky-400">
-          {charTix > 0 ? formatNumber(charTix) : <span className="text-text-muted/30">0</span>}
+        <td className={`px-4 py-3 text-right ${charTix > 0 ? "text-success" : charTix < 0 ? "text-danger" : "text-text-muted/30"}`}>
+          {charTix > 0 ? `+${formatNumber(charTix)}` : charTix < 0 ? formatNumber(charTix) : "0"}
         </td>
         {/* 8. Support Tickets */}
-        <td className="px-4 py-3 text-right text-amber-400">
-          {supTix > 0 ? formatNumber(supTix) : <span className="text-text-muted/30">0</span>}
+        <td className={`px-4 py-3 text-right ${supTix > 0 ? "text-success" : supTix < 0 ? "text-danger" : "text-text-muted/30"}`}>
+          {supTix > 0 ? `+${formatNumber(supTix)}` : supTix < 0 ? formatNumber(supTix) : "0"}
         </td>
         {/* Actions */}
         <td className="px-4 py-3 text-center">
