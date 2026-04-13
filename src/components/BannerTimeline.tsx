@@ -276,8 +276,9 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
 
   // Project tickets forward: use tickets as fallback when carats insufficient
   // Each ticket = 1 pull = 150 carats worth
-  const ticketsByBannerId = useMemo(() => {
-    const map = new Map<string, number>();
+  // Returns { remaining, used } per banner
+  const ticketInfoByBannerId = useMemo(() => {
+    const map = new Map<string, { remaining: number; used: number }>();
     let charRemaining = latestTickets.characterTickets;
     let supRemaining = latestTickets.supportTickets;
 
@@ -297,19 +298,22 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
         const ticketsNeeded = Math.ceil(shortfall / 150);
         const ticketsUsed = Math.min(ticketsNeeded, available);
         const remaining = available - ticketsUsed;
-        map.set(banner.id, remaining);
+        map.set(banner.id, { remaining, used: ticketsUsed });
         if (isSupport) supRemaining = remaining;
         else charRemaining = remaining;
       } else {
         // Enough carats — no tickets consumed
-        map.set(banner.id, available);
+        map.set(banner.id, { remaining: available, used: 0 });
       }
     }
 
     // Non-wishlisted banners just show current totals based on type
     for (const banner of datedBanners) {
       if (!map.has(banner.id)) {
-        map.set(banner.id, banner.type === 'card' ? supRemaining : charRemaining);
+        map.set(banner.id, {
+          remaining: banner.type === 'card' ? supRemaining : charRemaining,
+          used: 0,
+        });
       }
     }
 
@@ -503,18 +507,29 @@ export function BannerTimeline({ bannerEntries, weeklyEntries, onUpdate, onAdd, 
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {pred && (
-                        <span className={`font-medium ${pred.adjustedCarats >= 0 ? 'text-success' : 'text-danger'}`}>
-                          {formatNumber(pred.adjustedCarats)}
-                        </span>
-                      )}
+                      {pred && (() => {
+                        const info = ticketInfoByBannerId.get(banner.id);
+                        const ticketCaratValue = (info?.used ?? 0) * 150;
+                        const afterPullWithTickets = pred.adjustedCarats + ticketCaratValue;
+                        const display = ticketCaratValue > 0 ? Math.max(0, afterPullWithTickets) : pred.adjustedCarats;
+                        return (
+                          <span className={`font-medium ${display >= 0 ? 'text-success' : 'text-danger'}`}>
+                            {formatNumber(display)}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {(() => {
-                        const tickets = ticketsByBannerId.get(banner.id) ?? 0;
-                        const color = banner.type === 'card' ? 'text-amber-400' : 'text-sky-400';
-                        return tickets > 0
-                          ? <span className={color}>{tickets}</span>
+                        const info = ticketInfoByBannerId.get(banner.id);
+                        const remaining = info?.remaining ?? 0;
+                        const used = info?.used ?? 0;
+                        const normalColor = banner.type === 'card' ? 'text-amber-400' : 'text-sky-400';
+                        if (used > 0) {
+                          return <span className="text-danger font-medium">{remaining}</span>;
+                        }
+                        return remaining > 0
+                          ? <span className={normalColor}>{remaining}</span>
                           : <span className="text-text-muted/30">0</span>;
                       })()}
                     </td>
