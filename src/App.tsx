@@ -7,7 +7,7 @@ import { PaidCarats } from './components/PaidCarats';
 import { BannerTimeline } from './components/BannerTimeline';
 import { Wishlist } from './components/Wishlist';
 import { LayoutDashboard, CalendarDays, Flag, Star, RotateCcw } from 'lucide-react';
-const umaLogo = '/Uma_Musume_Pretty_Derby_JP_Logo.webp';
+const umaLogo = '/Uma_Musume_Pretty_Derby_JP_Logo.png';
 
 const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
