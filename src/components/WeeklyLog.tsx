@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { WeeklyEntry } from "../types";
 import { formatNumber, formatDate } from "../utils/calculations";
-import { Plus, Trash2, X, History, Pencil, Save } from "lucide-react";
+import { Plus, Trash2, X, Pencil, Save } from "lucide-react";
 import { CaratIcon } from "./Icons";
 
 interface WeeklyLogProps {
@@ -33,7 +33,7 @@ function EntryModalForm({
   initialValues: {
     date: string;
     caratSpent: string;
-    caratGain: string;
+    freeCarats: string;
     characterTickets: string;
     supportTickets: string;
   };
@@ -60,10 +60,9 @@ function EntryModalForm({
 
   const num = (v: string) => (v === "" ? 0 : Number(v));
 
-  const gain = num(form.caratGain);
+  const newFree = num(form.freeCarats);
   const spent = num(form.caratSpent);
-  const net = gain - spent;
-  const computedFree = previousFreeCarats + net;
+  const gain = newFree - previousFreeCarats + spent;
 
   const charTickets = num(form.characterTickets);
   const supTickets = num(form.supportTickets);
@@ -72,7 +71,7 @@ function EntryModalForm({
     e.preventDefault();
     onSubmit({
       date: form.date,
-      freeCarats: computedFree,
+      freeCarats: newFree,
       caratSpent: spent,
       caratGain: gain,
       characterTickets: charTickets,
@@ -115,19 +114,19 @@ function EntryModalForm({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-success mb-1.5">
-                Gain
+              <label className="block text-xs font-medium text-primary-light mb-1.5">
+                Balance
               </label>
               <input
                 type="number"
-                value={form.caratGain}
+                value={form.freeCarats}
                 onChange={(e) =>
-                  setForm({ ...form, caratGain: e.target.value })
+                  setForm({ ...form, freeCarats: e.target.value })
                 }
                 onKeyDown={blockNonNum}
                 placeholder="0"
                 autoFocus
-                className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-success/50 border border-surface-lighter focus:border-success transition-colors"
+                className="w-full bg-surface-lighter rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 border border-surface-lighter focus:border-primary transition-colors"
               />
             </div>
             <div>
@@ -152,21 +151,21 @@ function EntryModalForm({
               <span className="text-xs text-text-muted">Previous Balance</span>
               <span className="text-sm">{formatNumber(previousFreeCarats)}</span>
             </div>
-            {net !== 0 && (
+            {gain !== 0 && (
               <div className="flex justify-between items-center">
-                <span className="text-xs text-text-muted">Net Change</span>
+                <span className="text-xs text-text-muted">Gained</span>
                 <span
-                  className={`font-medium text-sm ${net >= 0 ? "text-success" : "text-danger"}`}
+                  className={`font-medium text-sm ${gain >= 0 ? "text-success" : "text-danger"}`}
                 >
-                  {net >= 0 ? "+" : ""}
-                  {formatNumber(net)}
+                  {gain >= 0 ? "+" : ""}
+                  {formatNumber(gain)}
                 </span>
               </div>
             )}
             <div className="border-t border-primary/20 pt-1.5 flex justify-between items-center">
               <span className="text-xs font-medium">New Free <CaratIcon /></span>
               <span className="font-semibold text-primary-light text-base">
-                {formatNumber(computedFree)}
+                {formatNumber(newFree)}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -254,7 +253,7 @@ function AddWeekModal({
       initialValues={{
         date: defaultDate,
         caratSpent: "0",
-        caratGain: "0",
+        freeCarats: String(previousFreeCarats),
         characterTickets: "0",
         supportTickets: "0",
       }}
@@ -307,7 +306,7 @@ function EditWeekModal({
       initialValues={{
         date: entry.date,
         caratSpent: String(entry.caratSpent),
-        caratGain: String(entry.caratGain),
+        freeCarats: String(entry.freeCarats),
         characterTickets: String(entry.characterTickets ?? 0),
         supportTickets: String(entry.supportTickets ?? 0),
       }}
@@ -386,19 +385,18 @@ export function WeeklyLog({
 }: WeeklyLogProps) {
   const [editingEntry, setEditingEntry] = useState<WeeklyEntry | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showPast, setShowPast] = useState(true);
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const { past, current, future } = classifyEntries(entries);
+  const { current } = classifyEntries(entries);
 
-  // Auto-scroll to current week on mount and when past is toggled
+  // Auto-scroll to current week on mount
   useEffect(() => {
     requestAnimationFrame(() => {
       const el = document.getElementById("current-week-anchor");
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
-  }, [showPast]);
+  }, []);
 
   // Calculate default date for new entry (7 days after most recent)
   const getDefaultDate = () => {
@@ -537,31 +535,12 @@ export function WeeklyLog({
     );
   };
 
-  const colCount = 9;
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Weekly Carat Log</h3>
         <div className="flex items-center gap-2">
-          {/* Show Past toggle */}
-          {past.length > 0 && (
-            <button
-              onClick={() => setShowPast(!showPast)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                showPast
-                  ? "bg-surface-lighter text-text-muted border border-surface-lighter"
-                  : "bg-gradient-to-r from-surface-lighter/80 to-surface-lighter border border-surface-lighter hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
-              }`}
-            >
-              <History
-                className={`w-4 h-4 transition-transform duration-300 ${showPast ? "rotate-0" : "-rotate-45"}`}
-              />
-              <span>
-                {showPast ? "Hide" : "Show"} Past ({past.length})
-              </span>
-            </button>
-          )}
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
@@ -645,50 +624,16 @@ export function WeeklyLog({
               </tr>
             </thead>
             <tbody>
-              {/* Past weeks – greyed out, only shown when toggled */}
-              {showPast && past.map((entry) => renderRow(entry, "past"))}
-
-              {/* Divider between past and current */}
-              {showPast && past.length > 0 && (
-                <tr>
-                  <td colSpan={colCount} className="px-0 py-0">
-                    <div className="flex items-center gap-3 px-4 py-2 bg-surface-lighter/30">
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-                      <span className="text-[10px] uppercase tracking-widest text-text-muted/60 font-medium">
-                        This Week
-                      </span>
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-                    </div>
-                  </td>
-                </tr>
-              )}
-
-              {/* Current week – highlighted */}
-              {current.map((entry, i) =>
-                renderRow(
-                  entry,
-                  "current",
-                  i === 0 ? "current-week-anchor" : undefined
-                )
-              )}
-
-              {/* If no current week entry exists, show a placeholder for scrolling */}
-              {current.length === 0 && future.length > 0 && (
-                <tr id="current-week-anchor">
-                  <td colSpan={colCount} className="px-0 py-0">
-                    <div className="flex items-center gap-3 px-4 py-2">
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-                      <span className="text-[10px] uppercase tracking-widest text-primary/60 font-medium">
-                        ▲ Now ▼
-                      </span>
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-                    </div>
-                  </td>
-                </tr>
-              )}
-
-              {/* Future weeks */}
-              {future.map((entry) => renderRow(entry, "future"))}
+              {[...entries]
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .map((entry) => {
+                  const isCurrent = current.some((c) => c.id === entry.id);
+                  return renderRow(
+                    entry,
+                    isCurrent ? "current" : "future",
+                    isCurrent && entry.id === closestCurrentId ? "current-week-anchor" : undefined
+                  );
+                })}
             </tbody>
           </table>
         </div>
